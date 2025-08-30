@@ -1,32 +1,29 @@
+// app/api/survey/start/route.ts
 import { NextResponse } from "next/server";
 import nodemailer from "nodemailer";
 
+// Хариултуудын төрөл
+interface Answers {
+    stress: number;
+    happiness: number;
+    eq: number;
+}
+
 export async function POST(req: Request) {
     try {
-        // JSON өгөгдлийг авна
-        const { email, answers } = await req.json();
+        const { email, answers }: { email: string; answers: Answers } = await req.json(); // Тодорхой төрөл ашиглаж байна
 
-        // Хэрэв answers утга байхгүй бол алдаа гаргана
-        if (!answers) {
-            return NextResponse.json(
-                { message: "Answers are missing or empty" },
-                { status: 400 }
-            );
-        }
-
-        // Nodemailer тохиргоо
         const transporter = nodemailer.createTransport({
             service: "gmail",
             auth: {
-                user: process.env.GMAIL_USER, // Таны Gmail хаяг
-                pass: process.env.GMAIL_APP_PASSWORD, // App Password
+                user: process.env.GMAIL_USER,
+                pass: process.env.GMAIL_APP_PASSWORD,
             },
         });
 
-        // Имэйлийн агуулга
         const mailOptions = {
-            from: process.env.GMAIL_USER, // Таны Gmail хаяг
-            to: email, // Хэрэглэгчийн мэйл хаяг
+            from: process.env.GMAIL_USER,
+            to: email,
             subject: "Таны судалгааны тайлан",
             html: `
         <h1>Таны судалгааны тайлан</h1>
@@ -36,18 +33,17 @@ export async function POST(req: Request) {
       `,
         };
 
-        // Мэйл илгээх
         await transporter.sendMail(mailOptions);
-
-        // Амжилттай мэйл илгээгдсэн тохиолдолд хариу буцаах
-        return NextResponse.json({ message: "Email sent successfully" }, { status: 200 });
-
-    } catch (error: any) {
+        return NextResponse.json({ message: "Email sent successfully" });
+    } catch (error) {
         console.error("Error occurred while sending email:", error);
-
-        // Алдаа гарсан тохиолдолд дэлгэрэнгүй мэдээлэлтэй хариу буцаах
         return NextResponse.json(
-            { message: "Error occurred while sending email", error: error.message || String(error) },
+            {
+                message: "Error occurred while sending email",
+                error: typeof error === "object" && error !== null && "message" in error
+                    ? (error as { message: string }).message
+                    : String(error)
+            },
             { status: 500 }
         );
     }

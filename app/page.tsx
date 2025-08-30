@@ -1,3 +1,4 @@
+// app/page.tsx
 "use client";
 
 import { useMemo, useState } from "react";
@@ -6,9 +7,18 @@ import QuestionCard from "../components/QuestionCard";
 import ProgressBar from "../components/ProgressBar";
 import { QUESTIONS, GROUPS } from "../lib/questions";
 
+// Хариултуудын төрөл
+interface Answers {
+  [key: string]: number;
+}
+
 export default function Page() {
   const [email, setEmail] = useState("");
-  const [answers, setAnswers] = useState<Record<string, number>>({});
+  const [answers, setAnswers] = useState<Answers>({
+    stress: 0,
+    happiness: 0,
+    eq: 0,
+  });
   const [currentIndex, setCurrentIndex] = useState(0);
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
@@ -57,8 +67,6 @@ export default function Page() {
 
     setSubmitting(true);
     try {
-      console.log("answers before sending:", answers);  // answers-ийг шалгах
-
       const response = await fetch("/api/survey/start", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -66,7 +74,7 @@ export default function Page() {
       });
 
       const result = await response.json();  // Хариуг JSON болгох
-      console.log("API response:", result); // Хариуг шалгах
+      console.log("API response:", result);  // Хариуг шалгах
 
       if (result.message === "Email sent successfully") {
         setDone(true);
@@ -74,31 +82,17 @@ export default function Page() {
       } else {
         alert("Тайлан илгээхэд алдаа гарлаа.");
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error during submission:", error);
-      alert("Алдаа гарлаа. Дахин оролдоно уу. Алдаа: " + (error.message || error));
+      const errorMessage =
+        typeof error === "object" && error !== null && "message" in error
+          ? (error as { message: string }).message
+          : String(error);
+      alert("Алдаа гарлаа. Дахин оролдоно уу. Алдаа: " + errorMessage);
     } finally {
       setSubmitting(false);
     }
   };
-
-
-
-
-
-  // Стресс, Сэтгэл ханамж, EQ группуудад дүн тооцох
-  const calculateGroupResults = (group: string[]) => {
-    const groupAnswers = group.map((id) => answers[id]).filter((value) => value !== undefined);
-    const sum = groupAnswers.reduce((acc, curr) => acc + curr, 0);
-    const avg = groupAnswers.length > 0 ? sum / groupAnswers.length : 0;
-    const min = Math.min(...groupAnswers);
-    const max = Math.max(...groupAnswers);
-    return { sum, avg, min, max };
-  };
-
-  const stressResults = calculateGroupResults(GROUPS.stress);
-  const happinessResults = calculateGroupResults(GROUPS.happiness);
-  const eqResults = calculateGroupResults(GROUPS.eq);
 
   return (
     <main className="min-h-screen font-sans bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 text-gray-900">
@@ -126,7 +120,7 @@ export default function Page() {
             <QuestionCard
               key={current.id}
               q={current}
-              value={answers[current.id]}
+              value={answers[current.id]}  // Тухайн id-г ашиглах
               onChange={(v) => handleChange(current.id, v)}
             />
 
@@ -151,13 +145,13 @@ export default function Page() {
                 <h3 className="text-xl font-semibold text-gray-800">Таны үр дүн:</h3>
                 <div className="mt-3">
                   <div>
-                    <strong>Стресс:</strong> {stressResults.avg} (Дундаж)
+                    <strong>Стресс:</strong> {answers.stress} (Дундаж)
                   </div>
                   <div>
-                    <strong>Сэтгэл ханамж:</strong> {happinessResults.avg} (Дундаж)
+                    <strong>Сэтгэл ханамж:</strong> {answers.happiness} (Дундаж)
                   </div>
                   <div>
-                    <strong>Эмоционал Интеллект:</strong> {eqResults.avg} (Дундаж)
+                    <strong>Эмоционал Интеллект:</strong> {answers.eq} (Дундаж)
                   </div>
                 </div>
               </div>
@@ -179,7 +173,7 @@ export default function Page() {
                   disabled={!isAnswered}
                   className="h-11 w-24 rounded-2xl bg-black text-white flex items-center justify-center hover:opacity-90 disabled:opacity-50 shadow text-sm"
                 >
-                  Дараагийн асуулт
+                  Дараах
                   <ChevronRight className="h-4 w-4 ml-1" />
                 </button>
               ) : (
