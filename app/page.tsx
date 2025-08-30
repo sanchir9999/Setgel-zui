@@ -1,103 +1,207 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import { useMemo, useState } from "react";
+import { Check, ChevronLeft, ChevronRight } from "lucide-react";
+import QuestionCard from "../components/QuestionCard";
+import ProgressBar from "../components/ProgressBar";
+import { QUESTIONS, GROUPS } from "../lib/questions";
+
+export default function Page() {
+  const [email, setEmail] = useState("");
+  const [answers, setAnswers] = useState<Record<string, number>>({});
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [submitting, setSubmitting] = useState(false);
+  const [done, setDone] = useState(false);
+
+  const total = QUESTIONS.length;
+  const current = QUESTIONS[currentIndex];
+
+  const answeredCount = useMemo(() => Object.keys(answers).length, [answers]);
+  const percent = useMemo(() => {
+    if (total === 0) return 0;
+    const p = Math.round((answeredCount / total) * 100);
+    return Math.max(0, Math.min(100, p));
+  }, [answeredCount, total]);
+
+  const handleChange = (id: string, val: number) =>
+    setAnswers((prev) => ({ ...prev, [id]: val }));
+
+  const canGoPrev = currentIndex > 0;
+  const isAnswered = answers[current.id] !== undefined;
+  const isLast = currentIndex === total - 1;
+
+  const goPrev = () => {
+    if (canGoPrev) setCurrentIndex((i) => i - 1);
+  };
+
+  const goNext = () => {
+    if (!isAnswered) return;
+    if (!isLast) {
+      setCurrentIndex((i) => i + 1);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
+
+  const submit = async () => {
+    if (!email || Object.keys(answers).length < total) {
+      alert("Бүх асуулт хариулсан эсэхийг шалгана уу.");
+      return;
+    }
+
+    // Имэйл хаягийг шалгах
+    const isValidEmail = /\S+@\S+\.\S+/.test(email);
+    if (!isValidEmail) {
+      alert("Зөв имэйл хаяг оруулна уу.");
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      console.log("answers before sending:", answers);  // answers-ийг шалгах
+
+      const response = await fetch("/api/survey/start", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, answers }),  // Хэрэглэгчийн имэйл, хариулт
+      });
+
+      const result = await response.json();  // Хариуг JSON болгох
+      console.log("API response:", result); // Хариуг шалгах
+
+      if (result.message === "Email sent successfully") {
+        setDone(true);
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      } else {
+        alert("Тайлан илгээхэд алдаа гарлаа.");
+      }
+    } catch (error: any) {
+      console.error("Error during submission:", error);
+      alert("Алдаа гарлаа. Дахин оролдоно уу. Алдаа: " + (error.message || error));
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+
+
+
+
+  // Стресс, Сэтгэл ханамж, EQ группуудад дүн тооцох
+  const calculateGroupResults = (group: string[]) => {
+    const groupAnswers = group.map((id) => answers[id]).filter((value) => value !== undefined);
+    const sum = groupAnswers.reduce((acc, curr) => acc + curr, 0);
+    const avg = groupAnswers.length > 0 ? sum / groupAnswers.length : 0;
+    const min = Math.min(...groupAnswers);
+    const max = Math.max(...groupAnswers);
+    return { sum, avg, min, max };
+  };
+
+  const stressResults = calculateGroupResults(GROUPS.stress);
+  const happinessResults = calculateGroupResults(GROUPS.happiness);
+  const eqResults = calculateGroupResults(GROUPS.eq);
+
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+    <main className="min-h-screen font-sans bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 text-gray-900">
+      <div className="sticky top-0 z-10 backdrop-blur bg-white/40 border-b border-white/40">
+        <div className="max-w-3xl mx-auto px-5 py-3 flex items-center justify-end">
+          <div className="w-56">
+            <ProgressBar percent={percent} showLabel />
+          </div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+      </div>
+
+      <div className="max-w-3xl mx-auto px-5 py-8">
+        <div className="rounded-3xl border border-white/40 bg-white/60 backdrop-blur-xl shadow-xl p-5 sm:p-8">
+          {done && (
+            <div className="fixed inset-0 z-20 flex items-center justify-center bg-black/30 backdrop-blur-sm">
+              <div className="rounded-2xl bg-white p-6 shadow-2xl">
+                <div className="mx-auto h-14 w-14 rounded-full bg-green-100 flex items-center justify-center">
+                  <Check className="h-7 w-7 text-green-600" />
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div className="space-y-6">
+            <QuestionCard
+              key={current.id}
+              q={current}
+              value={answers[current.id]}
+              onChange={(v) => handleChange(current.id, v)}
+            />
+
+            {isLast && (
+              <div className="rounded-2xl border border-black/10 bg-white/70 backdrop-blur p-3">
+                <input
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  type="email"
+                  placeholder="name@company.mn"
+                  className="w-full border rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-black/40"
+                  aria-label="Email"
+                />
+                <p className="text-xs text-gray-500 mt-2">
+                  **Тайлбар**: Энэ имэйл рүү таны асуулгын **тогтмол үр дүнгийн тайлан** илгээгдэнэ.
+                </p>
+              </div>
+            )}
+
+            {done && (
+              <div className="mt-5">
+                <h3 className="text-xl font-semibold text-gray-800">Таны үр дүн:</h3>
+                <div className="mt-3">
+                  <div>
+                    <strong>Стресс:</strong> {stressResults.avg} (Дундаж)
+                  </div>
+                  <div>
+                    <strong>Сэтгэл ханамж:</strong> {happinessResults.avg} (Дундаж)
+                  </div>
+                  <div>
+                    <strong>Эмоционал Интеллект:</strong> {eqResults.avg} (Дундаж)
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div className="flex items-center justify-between">
+              <button
+                onClick={goPrev}
+                disabled={!canGoPrev}
+                className="h-11 w-24 rounded-2xl border border-black/10 bg-white/70 backdrop-blur flex items-center justify-center hover:bg-white disabled:opacity-40 shadow-sm text-sm"
+              >
+                <ChevronLeft className="h-4 w-4 mr-1" />
+                Өмнөх
+              </button>
+
+              {!isLast ? (
+                <button
+                  onClick={goNext}
+                  disabled={!isAnswered}
+                  className="h-11 w-24 rounded-2xl bg-black text-white flex items-center justify-center hover:opacity-90 disabled:opacity-50 shadow text-sm"
+                >
+                  Дараагийн асуулт
+                  <ChevronRight className="h-4 w-4 ml-1" />
+                </button>
+              ) : (
+                <button
+                  onClick={submit}
+                  disabled={submitting || !email || done}
+                  className="h-11 w-28 rounded-2xl bg-green-600 text-white flex items-center justify-center hover:bg-green-700 disabled:opacity-50 shadow text-sm"
+                >
+                  Дуусгах
+                  <Check className="h-4 w-4 ml-1" />
+                </button>
+              )}
+            </div>
+
+            <div className="sm:hidden">
+              <div className="mt-4">
+                <ProgressBar percent={percent} showLabel />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
   );
 }
