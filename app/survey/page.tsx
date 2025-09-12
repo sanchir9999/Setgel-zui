@@ -93,7 +93,7 @@ export default function SurveyPage() {
       } else {
         setError(data.message || "Мэйл илгээхэд алдаа гарлаа.");
       }
-    } catch (e) {
+    } catch {
       setError("Мэйл илгээхэд алдаа гарлаа.");
     } finally {
       setSending(false);

@@ -28,7 +28,7 @@ export default function Home() {
       <h1 className="text-3xl sm:text-4xl font-extrabold text-gray-900 mb-6 text-center drop-shadow">Мэргэжлийн сэтгэлзүйн тестүүд</h1>
       <p className="text-gray-600 mb-10 text-center max-w-xl">Өөрийн сэтгэлзүйн төлөв, стресс, сэтгэл ханамж, EQ зэрэг олон төрлийн тестүүдийг бөглөж, хувь хүний зөвлөгөө аваарай.</p>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full max-w-4xl">
-        {TESTS.map((test, idx) => (
+        {TESTS.map((test) => (
           <Link key={test.title} href={test.href} className="group">
             <div
               className={`rounded-2xl shadow-lg bg-gradient-to-br ${test.color} p-6 h-full flex flex-col justify-between transition-transform duration-200 group-hover:scale-105 cursor-pointer`}

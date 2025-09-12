@@ -53,8 +53,8 @@ export default function QuestionCard({ q, value, onChange }: Props) {
         return arr;
     }, [q.scaleMin, q.scaleMax]);
 
-    const minLabel = labels[q.scaleMin] ?? "Бага";
-    const maxLabel = labels[q.scaleMax] ?? "Их";
+    // const minLabel = labels[q.scaleMin] ?? "Бага";
+    // const maxLabel = labels[q.scaleMax] ?? "Их";
 
     return (
         <div className="space-y-6">
