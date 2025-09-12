@@ -11,6 +11,11 @@ interface Answers {
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (req.method === "POST") {
+        // зөвхөн production орчинд мэйл илгээнэ
+        if (process.env.NODE_ENV !== "production") {
+            return res.status(200).json({ message: "Development орчинд мэйл илгээхгүй." });
+        }
+
         const { email, answers }: { email: string; answers: Answers } = req.body;  // Тодорхой төрөл ашиглаж байна
 
         // Хэрэв answers байхгүй бол алдаа гаргана
