@@ -57,12 +57,12 @@ export default function QuestionCard({ q, value, onChange }: Props) {
     const maxLabel = labels[q.scaleMax] ?? "Их";
 
     return (
-        <div className="space-y-5">
+        <div className="space-y-6">
             {/* Асуултын текст */}
-            <p className="text-lg font-medium text-gray-800">{q.text}</p>
+            <p className="text-lg sm:text-xl font-semibold text-gray-800 text-center mb-2">{q.text}</p>
 
             {/* Товчлуурын хэсэг */}
-            <div className="space-y-3">
+            <div className="space-y-4">
                 <div className="flex flex-wrap gap-2 justify-center">
                     {options.map((v) => {
                         const selected = value === v;
@@ -73,11 +73,11 @@ export default function QuestionCard({ q, value, onChange }: Props) {
                                 onClick={() => onChange(v)}
                                 aria-label={`${v}: ${labels[v] ?? ""}`}
                                 className={[
-                                    "h-12 w-12 rounded-xl border transition-colors duration-300",
-                                    "flex items-center justify-center text-sm font-medium",
+                                    "h-10 w-10 sm:h-12 sm:w-12 rounded-full border transition-all duration-200",
+                                    "flex items-center justify-center text-base font-semibold focus:outline-none",
                                     selected
-                                        ? "bg-green-500 text-white border-green-500 shadow-lg"
-                                        : "bg-white text-gray-700 border-gray-300 hover:bg-gray-100 hover:border-gray-400",
+                                        ? "bg-blue-600 text-white border-blue-600 shadow-md scale-105"
+                                        : "bg-white text-gray-700 border-gray-300 hover:bg-blue-100 hover:border-blue-400",
                                 ].join(" ")}
                             >
                                 {v}
@@ -86,13 +86,11 @@ export default function QuestionCard({ q, value, onChange }: Props) {
                     })}
                 </div>
 
-                {/* Тайлбар */}
-                <div className="flex justify-center text-sm text-gray-600">
-
-                    <span className="px-3 py-1 rounded-lg bg-green-200 text-green-800">
+                {/* Сонгосон хариултын тайлбар */}
+                <div className="flex justify-center text-sm text-gray-700 mt-2 min-h-[28px]">
+                    <span className="px-3 py-1 rounded-lg bg-blue-100 text-blue-800 font-medium">
                         {value !== undefined ? (labels[value] ?? value) : "Сонгоно уу"}
                     </span>
-
                 </div>
             </div>
         </div>
