@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from "react";
-import { motion } from "framer-motion";
+import { motion, PanInfo } from "framer-motion";
+import Image from "next/image";
 
 const slides = [
   { title: "Sea",    image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=1600&auto=format&fit=crop" },
@@ -23,9 +24,9 @@ export default function TopDownCurvedCarousel() {
   const current = useMemo(() => {
     const idx = Math.round((-rot) / STEP);
     return ((idx % slides.length) + slides.length) % slides.length;
-  }, [rot]);
+  }, [rot, STEP]);
 
-  const onDrag = (_e: any, info: any) => setRot(r => r - info.delta.x * SENS);
+  const onDrag = (_e: MouseEvent | TouchEvent, info: PanInfo) => setRot(r => r - info.delta.x * SENS);
   const onDragEnd = () => {
     const snapIdx = Math.round((-rot) / STEP);
     setRot(-snapIdx * STEP);
@@ -79,11 +80,14 @@ export default function TopDownCurvedCarousel() {
                     backfaceVisibility: "hidden",
                   }}
                 >
-                  <img
+                  <Image
                     src={s.image}
                     alt={s.title}
                     className="w-full h-full object-cover"
                     draggable={false}
+                    fill
+                    sizes="(max-width: 768px) 100vw, 360px"
+                    style={{ objectFit: "cover" }}
                   />
                   {/* Дээд ирмэгийг тодруулах нарийн цагаан шугам */}
                   <div className="absolute inset-x-0 top-0 h-[2px] bg-white/60 mix-blend-screen opacity-70" />
