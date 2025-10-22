@@ -241,11 +241,16 @@ export default function SurveyPage() {
       const data = await res.json();
       if (res.ok) {
         setSent(true);
+        // Хэрэв анхааруулга байвал харуулах
+        if (data.warning) {
+          setError(`✅ ${data.message}`);
+        }
       } else {
         setError(data.message || "Мэйл илгээхэд алдаа гарлаа.");
       }
-    } catch {
-      setError("Мэйл илгээхэд алдаа гарлаа.");
+    } catch (err) {
+      console.error("Мэйл илгээх алдаа:", err);
+      setError("Мэйл илгээхэд алдаа гарлаа. Сүлжээний холболтоо шалгана уу.");
     } finally {
       setSending(false);
     }

@@ -8,13 +8,16 @@ export async function POST(req: Request) {
     try {
         const { email, totalScore, maxScore, answers, advice } = await req.json();
 
-        // Development орчинд мэйл илгээхгүй
-        if (process.env.NODE_ENV !== "production") {
-            console.log("Development орчинд мэйл илгээхгүй байна");
+        // Gmail тохиргоо шалгах
+        if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) {
+            console.log("Gmail тохиргоо дутуу байна");
+            console.log("GMAIL_USER:", process.env.GMAIL_USER ? "Тохируулсан" : "Тохируулаагүй");
+            console.log("GMAIL_APP_PASSWORD:", process.env.GMAIL_APP_PASSWORD ? "Тохируулсан" : "Тохируулаагүй");
             console.log("Email:", email);
             console.log("Total Score:", totalScore);
-            console.log("Answers:", answers);
-            return NextResponse.json({ message: "Development орчинд тест хийгдлээ" });
+            return NextResponse.json({ 
+                message: "Тест амжилттай хийгдлээ! (Мэйл тохиргоо дутуу байгаа тул илгээгдсэнгүй)" 
+            });
         }
 
         const transporter = nodemailer.createTransport({
@@ -75,13 +78,25 @@ export async function POST(req: Request) {
             `,
         };
 
-        await transporter.sendMail(mailOptions);
-        return NextResponse.json({ message: "Email sent successfully" });
+        try {
+            await transporter.sendMail(mailOptions);
+            console.log("Мэйл амжилттай илгээгдлээ:", email);
+            return NextResponse.json({ message: "Тайлан амжилттай имэйлээр илгээгдлээ!" });
+        } catch (mailError) {
+            console.error("Мэйл илгээхэд алдаа:", mailError);
+            
+            // Мэйл илгээгдээгүй ч тест үр дүн нь ажилласан тул success буцаах
+            return NextResponse.json({ 
+                message: "Тест амжилттай хийгдлээ! (Мэйл илгээхэд алдаа гарсан тул имэйл илгээгдсэнгүй)",
+                warning: "Мэйл тохиргоонд алдаа байна"
+            });
+        }
+
     } catch (error) {
-        console.error("Error occurred while sending email:", error);
+        console.error("API алдаа:", error);
         return NextResponse.json(
             {
-                message: "Error occurred while sending email",
+                message: "Серверт алдаа гарлаа",
                 error: typeof error === "object" && error !== null && "message" in error
                     ? (error as { message: string }).message
                     : String(error)
