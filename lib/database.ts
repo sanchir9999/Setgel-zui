@@ -144,9 +144,9 @@ export async function sendSMS(phone: string, message?: string): Promise<boolean>
             const mongolianSMS = await sendMongolianSMS(phone, message);
             if (mongolianSMS) return true;
         }
-        
+
         return false; // Fallback амжилтгүй бол false буцаах
-    }    try {
+    } try {
         const client = twilio(accountSid, authToken);
 
         // Монголын утасны дугаарыг олон улсын форматруу хөрвүүлэх (+976)

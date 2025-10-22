@@ -60,11 +60,6 @@ export default function QuestionCard({ q, value, onChange }: Props) {
         <div className="space-y-8 p-6">
             {/* Асуултын текст - илүү том, тод */}
             <div className="text-center space-y-3">
-                <div className="inline-block px-4 py-2 bg-gradient-to-r from-blue-100 to-purple-100 rounded-full">
-                    <span className="text-sm font-medium text-blue-800">
-                        Асуулт {q.id}
-                    </span>
-                </div>
                 <h2 className="text-xl sm:text-2xl font-bold text-gray-800 leading-relaxed px-4">
                     {q.text}
                 </h2>

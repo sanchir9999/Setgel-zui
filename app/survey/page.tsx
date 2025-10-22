@@ -306,17 +306,9 @@ export default function SurveyPage() {
     <main className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 py-8 px-4">
       {/* Header секц */}
       <div className="w-full max-w-2xl mb-8 text-center">
-        <div className="inline-block mb-4">
-          <span className="px-4 py-2 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
-            Сэтгэлзүйн үнэлгээ
-          </span>
-        </div>
         <h1 className="text-3xl sm:text-4xl font-extrabold mb-4 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-          🧠 Амьдралын стрессийн түвшний тест
+          🧠 Стресс тодорхойлох тест
         </h1>
-        <p className="text-gray-600 text-lg max-w-lg mx-auto">
-          15 асуултын тусламжтайгаар таны сэтгэлийн эрүүл мэндийг үнэлж, хувийн зөвлөгөө өгөх болно.
-        </p>
       </div>
 
       {/* Progress хэсэг */}
@@ -332,10 +324,6 @@ export default function SurveyPage() {
       <div className="bg-white rounded-3xl shadow-2xl border border-gray-100 w-full max-w-2xl overflow-hidden">
         {current < total ? (
           <div className="relative">
-            {/* Question number indicator */}
-            <div className="absolute top-6 right-6 bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-bold">
-              {current + 1}/{total}
-            </div>
             <QuestionCard
               q={QUESTIONS[current]}
               onChange={handleAnswer}
@@ -393,8 +381,8 @@ export default function SurveyPage() {
               </div>
             )}
 
-            {/* User status display */}
-            {user ? (
+            {/* Зөвхөн нэвтэрсэн хэрэглэгчдэд хэрэглэгчийн мэдээлэл харуулах */}
+            {user && (
               <div className="mb-6">
                 <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-2xl p-6 border border-green-200">
                   <div className="text-center">
@@ -426,82 +414,61 @@ export default function SurveyPage() {
                   </div>
                 </div>
               </div>
-            ) : (
-              <div className="mb-6">
-                <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-2xl p-6 border border-purple-200">
-                  <div className="text-center mb-4">
-                    <h3 className="text-xl font-bold text-gray-800 mb-2">🔐 Нэвтэрч үр дүн харах</h3>
-                    <p className="text-gray-600 text-sm">
-                      Тестийн үр дүн, зөвлөгөө болон тестийн түүх харахын тулд нэвтрэх шаардлагатай
-                    </p>
-                  </div>
-                  <div className="flex gap-3">
-                    <button
-                      className="flex-1 bg-white border-2 border-purple-300 text-purple-700 font-semibold py-3 px-4 rounded-xl hover:bg-purple-50 transition-all"
-                      onClick={() => { setShowAuth(true); setAuthMode('login'); }}
-                    >
-                      🔑 Нэвтрэх
-                    </button>
-                    <button
-                      className="flex-1 bg-gradient-to-r from-purple-600 to-blue-600 text-white font-semibold py-3 px-4 rounded-xl hover:from-purple-700 hover:to-blue-700 transition-all"
-                      onClick={() => { setShowAuth(true); setAuthMode('register'); }}
-                    >
-                      📝 Бүртгүүлэх
-                    </button>
-                  </div>
-                </div>
-              </div>
             )}
 
             {/* Email section - зөвхөн нэвтэрсэн хэрэглэгчид */}
-            {user && !sent && !showAuth ? (
-              <div className="bg-gray-50 rounded-2xl p-6 border border-gray-200">
-                <div className="mb-4">
-                  <h3 className="text-lg font-bold text-gray-800 mb-2">📧 Имэйлээр дэлгэрэнгүй тайлан авах</h3>
-                  <p className="text-gray-600 text-sm">
-                    Таны тестийн үр дүн болон зөвлөгөөг имэйлээр дэлгэрэнгүй илгээж өгөх болно
-                  </p>
-                </div>
-                <div className="space-y-3">
-                  <input
-                    type="email"
-                    className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all"
-                    placeholder="example@gmail.com"
-                    value={email}
-                    onChange={e => setEmail(e.target.value)}
-                    disabled={sending}
-                    required
-                  />
-                  <button
-                    className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold py-3 px-6 rounded-xl transition-all transform hover:scale-105 active:scale-95 disabled:opacity-60 disabled:transform-none shadow-lg"
-                    onClick={handleSendMail}
-                    disabled={sending || !email}
-                  >
-                    {sending ? (
-                      <span className="flex items-center justify-center">
-                        <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                        Илгээж байна...
-                      </span>
-                    ) : (
-                      "📨 Тайланг имэйлээр авах"
-                    )}
-                  </button>
-                  {error && (
-                    <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-xl text-sm">
-                      {error}
+            {user && !showAuth && (
+              <>
+                {!sent ? (
+                  <div className="bg-gray-50 rounded-2xl p-6 border border-gray-200">
+                    <div className="mb-4">
+                      <h3 className="text-lg font-bold text-gray-800 mb-2">📧 Имэйлээр дэлгэрэнгүй тайлан авах</h3>
+                      <p className="text-gray-600 text-sm">
+                        Таны тестийн үр дүн болон зөвлөгөөг имэйлээр дэлгэрэнгүй илгээж өгөх болно
+                      </p>
                     </div>
-                  )}
-                </div>
-              </div>
-            ) : (
-              <div className="bg-green-50 border border-green-200 text-green-700 px-6 py-4 rounded-2xl">
-                <div className="text-2xl mb-2">✅</div>
-                <p className="font-semibold">Тайлан амжилттай илгээгдлээ!</p>
-                <p className="text-sm text-green-600">Имэйлээ шалгаарай</p>
-              </div>
+                    <div className="space-y-3">
+                      <input
+                        type="email"
+                        className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-base text-black focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all placeholder:text-gray-900"
+                        placeholder="example@gmail.com"
+                        value={email}
+                        onChange={e => setEmail(e.target.value)}
+                        disabled={sending}
+                        required
+                      />
+                      <button
+                        className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold py-3 px-6 rounded-xl transition-all transform hover:scale-105 active:scale-95 disabled:opacity-60 disabled:transform-none shadow-lg"
+                        onClick={handleSendMail}
+                        disabled={sending || !email}
+                      >
+                        {sending ? (
+                          <span className="flex items-center justify-center">
+                            <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            Илгээж байна...
+                          </span>
+                        ) : (
+                          "📨 Тайланг имэйлээр авах"
+                        )}
+                      </button>
+                      {error && (
+                        <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-xl text-sm">
+                          {error}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="bg-green-50 border border-green-200 text-green-700 px-6 py-4 rounded-2xl">
+                    <div className="text-2xl mb-2">✅</div>
+                    <p className="font-semibold">Тайлан амжилттай илгээгдлээ!</p>
+                    <p className="text-sm text-green-600">Имэйлээ шалгаарай</p>
+                  </div>
+                )}
+              </>
             )}
 
             {/* Auth Modal */}
@@ -589,7 +556,7 @@ function LoginForm({ onSuccess }: { onSuccess: () => void }) {
         </label>
         <input
           type="tel"
-          className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-purple-400"
+          className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-black focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-purple-400 placeholder:text-gray-900"
           placeholder="99112233"
           value={phone}
           onChange={e => setPhone(e.target.value)}
@@ -693,7 +660,7 @@ function RegisterForm({ onSuccess }: { onSuccess: () => void }) {
           </label>
           <input
             type="text"
-            className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-center text-2xl tracking-widest focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-purple-400"
+            className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-center text-2xl tracking-widest text-black focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-purple-400 placeholder:text-gray-900"
             placeholder="000000"
             maxLength={6}
             value={verificationCode}
@@ -751,7 +718,7 @@ function RegisterForm({ onSuccess }: { onSuccess: () => void }) {
         </label>
         <input
           type="tel"
-          className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-purple-400"
+          className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-black focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-purple-400 placeholder:text-gray-900"
           placeholder="99112233"
           value={phone}
           onChange={e => setPhone(e.target.value)}
@@ -763,7 +730,7 @@ function RegisterForm({ onSuccess }: { onSuccess: () => void }) {
         </label>
         <input
           type="email"
-          className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-purple-400"
+          className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-black focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-purple-400 placeholder:text-gray-900"
           placeholder="example@gmail.com"
           value={email}
           onChange={e => setEmail(e.target.value)}

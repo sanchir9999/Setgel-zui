@@ -21,7 +21,7 @@ export default function ProgressBar({ percent, showLabel = true }: Props) {
                 className="relative w-full h-6 rounded-xl
                     bg-gradient-to-r from-gray-100 to-gray-200 
                     dark:from-zinc-800 dark:to-zinc-700
-                    ring-2 ring-blue-200 dark:ring-blue-800
+                    ring-2 ring-green-200 dark:ring-green-800
                     overflow-hidden shadow-inner"
             >
                 {/* Fill */}
@@ -29,7 +29,7 @@ export default function ProgressBar({ percent, showLabel = true }: Props) {
                     className="
                         h-full rounded-xl
                         transition-all duration-500 ease-out
-                        bg-gradient-to-r from-blue-500 via-blue-600 to-purple-600
+                        bg-gradient-to-r from-green-500 via-green-600 to-emerald-600
                         shadow-lg
                         relative
                     "
