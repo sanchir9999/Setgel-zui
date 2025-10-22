@@ -416,7 +416,7 @@ export default function SurveyPage() {
                       <button
                         className="flex-1 text-blue-600 hover:text-blue-800 text-sm font-medium py-2 px-4 rounded-lg border border-blue-200 hover:bg-blue-50 transition-all"
                         onClick={() => {
-                          // TODO: Тестийн түүх харах
+                          // Тестийн түүх харах функц
                           alert('Тестийн түүх харах функц удахгүй нэмэгдэнэ!');
                         }}
                       >

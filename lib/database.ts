@@ -131,8 +131,6 @@ function generateId(): string {
 
 // SMS илгээх функц
 export async function sendSMS(phone: string, message?: string): Promise<boolean> {
-    console.log(`📱 SMS to ${phone}`);
-
     // Twilio тохиргоонууд
     const accountSid = process.env.TWILIO_ACCOUNT_SID;
     const authToken = process.env.TWILIO_AUTH_TOKEN;
@@ -140,21 +138,15 @@ export async function sendSMS(phone: string, message?: string): Promise<boolean>
 
     // Хэрэв Twilio тохиргоо дутуу бол fallback рүү шилжих
     if (!accountSid || !authToken || !verifyServiceSid) {
-        console.log('⚠️ Twilio Verify тохиргоо дутуу байна. Fallback рүү шилждэж байна.');
-
         // Fallback зорилгоор manual код үүсгэх
         if (message) {
             // Монголын SMS API (Skytel жишээ) эсвэл бусад API
             const mongolianSMS = await sendMongolianSMS(phone, message);
             if (mongolianSMS) return true;
-
-            console.log(`Fallback консол SMS: ${phone} → ${message}`);
         }
-
+        
         return false; // Fallback амжилтгүй бол false буцаах
-    }
-
-    try {
+    }    try {
         const client = twilio(accountSid, authToken);
 
         // Монголын утасны дугаарыг олон улсын форматруу хөрвүүлэх (+976)
@@ -166,12 +158,10 @@ export async function sendSMS(phone: string, message?: string): Promise<boolean>
         }
 
         // Verify Service ашиглаж автомат SMS илгээх (зөвхөн нэг удаа)
-        const verification = await client.verify.v2.services(verifyServiceSid)
+        await client.verify.v2.services(verifyServiceSid)
             .verifications
             .create({ to: formattedPhone, channel: 'sms' });
 
-        console.log(`✅ Twilio Verify SMS илгээгдлээ: ${formattedPhone}`);
-        console.log(`Verification SID: ${verification.sid}`);
         return true;
 
     } catch (error) {
@@ -181,8 +171,6 @@ export async function sendSMS(phone: string, message?: string): Promise<boolean>
         if (message) {
             const mongolianSMS = await sendMongolianSMS(phone, message);
             if (mongolianSMS) return true;
-
-            console.log(`Fallback SMS: ${phone} → ${message}`);
         }
 
         return false; // Бүх арга амжилтгүй бол false
@@ -211,13 +199,11 @@ async function sendMongolianSMS(phone: string, message: string): Promise<boolean
             });
 
             if (response.ok) {
-                console.log(`✅ Skytel SMS илгээгдлээ: ${phone}`);
                 return true;
             }
         }
 
         // Бусад Монголын провайдерууд энд нэмж болно
-        console.log('⚠️ Монголын SMS API тохиргоо байхгүй');
         return false;
 
     } catch (error) {
@@ -252,15 +238,13 @@ export async function verifyTwilioCode(phone: string, code: string): Promise<{ s
             .create({ to: formattedPhone, code: code });
 
         if (verificationCheck.status === 'approved') {
-            console.log(`✅ Twilio Verify баталгаажуулалт амжилттай: ${formattedPhone}`);
             return { success: true, message: 'Код зөв байна' };
         } else {
-            console.log(`❌ Twilio Verify баталгаажуулалт амжилтгүй: ${verificationCheck.status}`);
             return { success: false, message: 'Код буруу эсвэл хугацаа дууссан' };
         }
 
     } catch (error) {
-        console.error('❌ Twilio Verify баталгаажуулах алдаа:', error);
+        console.error('Twilio Verify баталгаажуулах алдаа:', error);
         return { success: false, message: 'Баталгаажуулахад алдаа гарлаа' };
     }
 }

@@ -35,7 +35,7 @@ const SurveyForm = () => {
 
         const data = await response.json();
         if (response.ok) {
-            console.log("Мэйл амжилттай илгээгдсэн");
+            // Мэйл амжилттай илгээгдлээ
         } else {
             console.error("Мэйл илгээхэд алдаа гарлаа", data);
         }

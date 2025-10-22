@@ -9,15 +9,7 @@ export async function POST(req: Request) {
         const { email, totalScore, maxScore, answers, advice } = await req.json();
 
         // Gmail тохиргоо шалгах
-        console.log("=== GMAIL ТОХИРГОО ШАЛГАЛТ ===");
-        console.log("NODE_ENV:", process.env.NODE_ENV);
-        console.log("GMAIL_USER:", process.env.GMAIL_USER || "ТОХИРУУЛААГҮЙ");
-        console.log("GMAIL_APP_PASSWORD length:", process.env.GMAIL_APP_PASSWORD?.length || 0);
-        console.log("GMAIL_APP_PASSWORD байгаа эсэх:", !!process.env.GMAIL_APP_PASSWORD);
-        console.log("================================");
-
         if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) {
-            console.log("❌ Gmail тохиргоо дутуу байна");
             return NextResponse.json({
                 message: "Тест амжилттай хийгдлээ! (Мэйл тохиргоо дутуу байгаа тул илгээгдсэнгүй)",
                 debug: {
@@ -44,15 +36,12 @@ export async function POST(req: Request) {
 
         // Холболтыг шалгах
         try {
-            console.log("Gmail холболтыг шалгаж байна...");
             await transporter.verify();
-            console.log("✅ Gmail холболт амжилттай");
-        } catch (verifyError: unknown) {
-            const error = verifyError as Error;
-            console.error("❌ Gmail холболт амжилтгүй:", error.message);
+        } catch (verifyError) {
+            console.error("❌ Gmail холболт амжилтгүй:", verifyError);
             return NextResponse.json({
                 message: "Тест амжилттай хийгдлээ! (Gmail холболт амжилтгүй)",
-                error: error.message
+                error: "Gmail холболт амжилтгүй"
             });
         }
 
@@ -107,31 +96,15 @@ export async function POST(req: Request) {
         };
 
         try {
-            console.log("Мэйл илгээж байна...");
-            console.log("From:", mailOptions.from);
-            console.log("To:", email);
-
             await transporter.sendMail(mailOptions);
-            console.log("Мэйл амжилттай илгээгдлээ:", email);
             return NextResponse.json({ message: "Тайлан амжилттай имэйлээр илгээгдлээ!" });
-        } catch (mailError: unknown) {
-            const error = mailError as Error & { name?: string; code?: string };
-            console.error("=== МЭЙЛ АЛДАА ===");
-            console.error("Алдааны төрөл:", error.name);
-            console.error("Алдааны мессеж:", error.message);
-            console.error("Алдааны код:", error.code);
-            console.error("Бүрэн алдаа:", error);
-            console.error("==================");
+        } catch (mailError) {
+            console.error("Мэйл илгээхэд алдаа:", mailError);
 
             // Мэйл илгээгдээгүй ч тест үр дүн нь ажилласан тул success буцаах
             return NextResponse.json({
                 message: "Тест амжилттай хийгдлээ! (Мэйл илгээхэд алдаа гарсан тул имэйл илгээгдсэнгүй)",
-                warning: "Мэйл тохиргоонд алдаа байна",
-                errorDetails: {
-                    name: error.name,
-                    message: error.message,
-                    code: error.code
-                }
+                warning: "Мэйл тохиргоонд алдаа байна"
             });
         }
 

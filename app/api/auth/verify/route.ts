@@ -38,7 +38,6 @@ export async function POST(request: NextRequest) {
         }
 
         // Twilio амжилтгүй бол локал баталгаажуулах кодыг шалгах (fallback)
-        console.log('Twilio Verify амжилтгүй, локал код шалгаж байна...');
 
         const verificationCode = await db.verificationCodes.findValidCode(phone, code);
 

@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
                 isUsed: false,
             });
 
-            console.log(`⚠️ Twilio амжилтгүй, fallback код үүсгэлээ: ${verificationCode}`);
+            // Fallback код үүсгэгдлээ
         }
 
         return NextResponse.json({
