@@ -1,7 +1,14 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { useState as useClientState } from "react";
+
+// User type
+interface UserData {
+  userId: string;
+  phone: string;
+  email: string;
+}
 // Онооны үр дүнгээс зөвлөгөө өгөх функц (UI үзүүлэхэд)
 function getAdvice(score: number, maxScore: number) {
   const percent = (score / maxScore) * 100;
@@ -201,7 +208,18 @@ export default function SurveyPage() {
   const [sending, setSending] = useClientState(false);
   const [sent, setSent] = useClientState(false);
   const [error, setError] = useClientState("");
+  const [showAuth, setShowAuth] = useClientState(false);
+  const [authMode, setAuthMode] = useClientState<'login' | 'register'>('login');
+  const [user, setUser] = useClientState<UserData | null>(null);
   const total = QUESTIONS.length;
+
+  // Хуудас ачаалагдах үед хэрэглэгчийн мэдээллийг шалгах
+  useEffect(() => {
+    const savedUser = localStorage.getItem('user');
+    if (savedUser) {
+      setUser(JSON.parse(savedUser));
+    }
+  }, [setUser]);
 
   const handleAnswer = (score: number) => {
     setAnswers((prev) => [...prev, score]);
@@ -221,6 +239,34 @@ export default function SurveyPage() {
   }, []);
 
   const percent = Math.round((current / total) * 100);
+
+  // Хэрэглэгч нэвтэрсэн үед тестийн үр дүнг хадгалах
+  const saveTestResult = useCallback(async () => {
+    if (!user || !result) return;
+
+    try {
+      await fetch('/api/test-results', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: user.userId,
+          totalScore: result,
+          maxScore,
+          answers,
+          advice: getAdviceForEmail(result, maxScore),
+        }),
+      });
+    } catch (error) {
+      console.error('Тестийн үр дүн хадгалахад алдаа:', error);
+    }
+  }, [user, result, maxScore, answers]);
+
+  // Тест дуусах үед хэрэглэгч нэвтэрсэн бол үр дүнг хадгалах
+  useEffect(() => {
+    if (result && user) {
+      saveTestResult();
+    }
+  }, [result, user, saveTestResult]);
 
   // Мэйл илгээх функц
   const handleSendMail = async () => {
@@ -306,29 +352,108 @@ export default function SurveyPage() {
               <p className="text-gray-600">Таны үр дүнг дэлгэрэнгүй харж болно</p>
             </div>
 
-            {/* Score display */}
-            <div className="mb-8 p-6 bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl text-white shadow-xl">
-              <div className="text-sm opacity-90 mb-2">Таны нийт оноо</div>
-              <div className="text-4xl sm:text-5xl font-extrabold mb-2">{result}</div>
-              <div className="text-sm opacity-90">
-                {maxScore} оноогоос ({Math.round(((result || 0) / maxScore) * 100)}%)
-              </div>
-            </div>
+            {/* Score display - зөвхөн нэвтэрсэн хэрэглэгчид */}
+            {user ? (
+              <>
+                <div className="mb-8 p-6 bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl text-white shadow-xl">
+                  <div className="text-xs opacity-80 mb-1">Тест №{Date.now().toString().slice(-4)}</div>
+                  <div className="text-sm opacity-90 mb-2">Таны нийт оноо</div>
+                  <div className="text-4xl sm:text-5xl font-extrabold mb-2">{result}</div>
+                  <div className="text-sm opacity-90">
+                    {maxScore} оноогоос ({Math.round(((result || 0) / maxScore) * 100)}%)
+                  </div>
+                  <div className="text-xs opacity-80 mt-2">
+                    {new Date().toLocaleDateString('mn-MN')} | {new Date().toLocaleTimeString('mn-MN', { hour: '2-digit', minute: '2-digit' })}
+                  </div>
+                </div>
 
-            {/* Advice section */}
-            {result !== null && (
-              <div className="mb-8">
-                {getAdvice(result, maxScore)}
+                {/* Advice section */}
+                {result !== null && (
+                  <div className="mb-8">
+                    {getAdvice(result, maxScore)}
+                  </div>
+                )}
+              </>
+            ) : (
+              /* Нэвтрээгүй хэрэглэгчид зөвхөн мэдээлэл */
+              <div className="mb-8 p-6 bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl border border-gray-300">
+                <div className="text-center">
+                  <div className="text-4xl mb-4">🔒</div>
+                  <h3 className="text-lg font-bold text-gray-800 mb-2">Үр дүн харахын тулд нэвтрэнэ үү</h3>
+                  <p className="text-gray-600 text-sm">
+                    Тестийн үр дүн, зөвлөгөө болон өөрийн прогресс харахын тулд нэвтрэх шаардлагатай
+                  </p>
+                </div>
               </div>
             )}
 
-            {/* Email section */}
-            {!sent ? (
+            {/* User status display */}
+            {user ? (
+              <div className="mb-6">
+                <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-2xl p-6 border border-green-200">
+                  <div className="text-center">
+                    <div className="text-2xl mb-2">✅</div>
+                    <h3 className="text-lg font-bold text-gray-800 mb-2">Тавтай морил, {user.phone}!</h3>
+                    <p className="text-gray-600 text-sm mb-3">
+                      Таны тестийн үр дүн автоматаар хадгалагдлаа
+                    </p>
+                    <div className="flex gap-3 mt-4">
+                      <button
+                        onClick={() => {
+                          localStorage.removeItem('user');
+                          setUser(null);
+                        }}
+                        className="flex-1 text-red-600 hover:text-red-800 text-sm font-medium py-2 px-4 rounded-lg border border-red-200 hover:bg-red-50 transition-all"
+                      >
+                        🚪 Гарах
+                      </button>
+                      <button
+                        className="flex-1 text-blue-600 hover:text-blue-800 text-sm font-medium py-2 px-4 rounded-lg border border-blue-200 hover:bg-blue-50 transition-all"
+                        onClick={() => {
+                          // TODO: Тестийн түүх харах
+                          alert('Тестийн түүх харах функц удахгүй нэмэгдэнэ!');
+                        }}
+                      >
+                        📊 Тестийн түүх
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="mb-6">
+                <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-2xl p-6 border border-purple-200">
+                  <div className="text-center mb-4">
+                    <h3 className="text-xl font-bold text-gray-800 mb-2">🔐 Нэвтэрч үр дүн харах</h3>
+                    <p className="text-gray-600 text-sm">
+                      Тестийн үр дүн, зөвлөгөө болон тестийн түүх харахын тулд нэвтрэх шаардлагатай
+                    </p>
+                  </div>
+                  <div className="flex gap-3">
+                    <button
+                      className="flex-1 bg-white border-2 border-purple-300 text-purple-700 font-semibold py-3 px-4 rounded-xl hover:bg-purple-50 transition-all"
+                      onClick={() => { setShowAuth(true); setAuthMode('login'); }}
+                    >
+                      🔑 Нэвтрэх
+                    </button>
+                    <button
+                      className="flex-1 bg-gradient-to-r from-purple-600 to-blue-600 text-white font-semibold py-3 px-4 rounded-xl hover:from-purple-700 hover:to-blue-700 transition-all"
+                      onClick={() => { setShowAuth(true); setAuthMode('register'); }}
+                    >
+                      📝 Бүртгүүлэх
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Email section - зөвхөн нэвтэрсэн хэрэглэгчид */}
+            {user && !sent && !showAuth ? (
               <div className="bg-gray-50 rounded-2xl p-6 border border-gray-200">
                 <div className="mb-4">
-                  <h3 className="text-lg font-bold text-gray-800 mb-2">📧 Дэлгэрэнгүй тайлан авах</h3>
+                  <h3 className="text-lg font-bold text-gray-800 mb-2">📧 Имэйлээр дэлгэрэнгүй тайлан авах</h3>
                   <p className="text-gray-600 text-sm">
-                    Таны хариултууд болон зөвлөгөөг имэйлээр илгээж өгөх болно
+                    Таны тестийн үр дүн болон зөвлөгөөг имэйлээр дэлгэрэнгүй илгээж өгөх болно
                   </p>
                 </div>
                 <div className="space-y-3">
@@ -372,9 +497,284 @@ export default function SurveyPage() {
                 <p className="text-sm text-green-600">Имэйлээ шалгаарай</p>
               </div>
             )}
+
+            {/* Auth Modal */}
+            {showAuth && (
+              <div className="bg-white rounded-2xl p-6 border-2 border-purple-200 shadow-xl">
+                <div className="flex justify-between items-center mb-6">
+                  <h3 className="text-xl font-bold text-gray-800">
+                    {authMode === 'login' ? '🔑 Нэвтрэх' : '📝 Бүртгүүлэх'}
+                  </h3>
+                  <button
+                    onClick={() => setShowAuth(false)}
+                    className="text-gray-400 hover:text-gray-600 text-2xl"
+                  >
+                    ×
+                  </button>
+                </div>
+
+                {authMode === 'register' ? (
+                  <RegisterForm onSuccess={() => setShowAuth(false)} />
+                ) : (
+                  <LoginForm onSuccess={() => setShowAuth(false)} />
+                )}
+
+                <div className="text-center mt-4">
+                  <button
+                    onClick={() => setAuthMode(authMode === 'login' ? 'register' : 'login')}
+                    className="text-purple-600 hover:text-purple-800 text-sm font-medium"
+                  >
+                    {authMode === 'login'
+                      ? 'Бүртгэл байхгүй юу? Бүртгүүлэх'
+                      : 'Бүртгэл байгаа уу? Нэвтрэх'}
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
     </main>
+  );
+}
+
+// Login Form Component
+function LoginForm({ onSuccess }: { onSuccess: () => void }) {
+  const [phone, setPhone] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleLogin = async () => {
+    if (!phone) return;
+
+    setLoading(true);
+    setError("");
+
+    try {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone })
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        // Хэрэглэгчийн мэдээллийг localStorage-д хадгалах
+        localStorage.setItem('user', JSON.stringify(data.data));
+        // Хуудсыг дахин ачаалж хэрэглэгчийн төлөв шинэчлэх
+        window.location.reload();
+        onSuccess();
+      } else {
+        setError(data.message);
+      }
+    } catch {
+      setError('Сүлжээний алдаа гарлаа');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Утасны дугаар
+        </label>
+        <input
+          type="tel"
+          className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-purple-400"
+          placeholder="99112233"
+          value={phone}
+          onChange={e => setPhone(e.target.value)}
+        />
+      </div>
+      <button
+        onClick={handleLogin}
+        className="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white font-semibold py-3 rounded-xl hover:from-purple-700 hover:to-blue-700 disabled:opacity-60"
+        disabled={loading || !phone}
+      >
+        {loading ? "Нэвтэрч байна..." : "Нэвтрэх"}
+      </button>
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-2 rounded-lg text-sm">
+          {error}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Register Form Component
+function RegisterForm({ onSuccess }: { onSuccess: () => void }) {
+  const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
+  const [verificationCode, setVerificationCode] = useState("");
+  const [step, setStep] = useState<'info' | 'verify'>('info');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleRegister = async () => {
+    if (!phone || !email) return;
+
+    setLoading(true);
+    setError("");
+
+    try {
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone, email })
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setStep('verify');
+      } else {
+        setError(data.message);
+      }
+    } catch {
+      setError('Сүлжээний алдаа гарлаа');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerify = async () => {
+    if (!verificationCode || verificationCode.length !== 6) return;
+
+    setLoading(true);
+    setError("");
+
+    try {
+      const response = await fetch('/api/auth/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone, email, code: verificationCode })
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        // Хэрэглэгчийн мэдээллийг localStorage-д хадгалах
+        localStorage.setItem('user', JSON.stringify(data.data));
+        // Хуудсыг дахин ачаалж хэрэглэгчийн төлөв шинэчлэх
+        window.location.reload();
+        onSuccess();
+      } else {
+        setError(data.message);
+      }
+    } catch {
+      setError('Сүлжээний алдаа гарлаа');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (step === 'verify') {
+    return (
+      <div className="space-y-4">
+        <div className="text-center">
+          <div className="text-4xl mb-2">📱</div>
+          <p className="text-gray-600 text-sm">
+            <span className="font-medium">{phone}</span> дугаарт баталгаажуулах код илгээлээ
+          </p>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Баталгаажуулах код
+          </label>
+          <input
+            type="text"
+            className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-center text-2xl tracking-widest focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-purple-400"
+            placeholder="000000"
+            maxLength={6}
+            value={verificationCode}
+            onChange={e => setVerificationCode(e.target.value.replace(/\D/g, ''))}
+          />
+        </div>
+        <button
+          onClick={handleVerify}
+          className="w-full bg-gradient-to-r from-green-600 to-blue-600 text-white font-semibold py-3 rounded-xl hover:from-green-700 hover:to-blue-700 disabled:opacity-60"
+          disabled={loading || verificationCode.length !== 6}
+        >
+          {loading ? "Баталгаажуулж байна..." : "Баталгаажуулах"}
+        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={() => setStep('info')}
+            className="flex-1 text-purple-600 hover:text-purple-800 text-sm"
+          >
+            ← Буцах
+          </button>
+          <button
+            onClick={async () => {
+              try {
+                const response = await fetch(`/api/dev/sms-codes?phone=${phone}`);
+                const data = await response.json();
+                if (data.success) {
+                  setVerificationCode(data.data.code);
+                  alert(`🔍 Хөгжүүлэлтийн код: ${data.data.code}`);
+                } else {
+                  alert('SMS код олдсонгүй');
+                }
+              } catch {
+                alert('SMS код авахад алдаа гарлаа');
+              }
+            }}
+            className="flex-1 text-blue-600 hover:text-blue-800 text-sm"
+          >
+            🔍 SMS код харах
+          </button>
+        </div>
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-2 rounded-lg text-sm">
+            {error}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Утасны дугаар *
+        </label>
+        <input
+          type="tel"
+          className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-purple-400"
+          placeholder="99112233"
+          value={phone}
+          onChange={e => setPhone(e.target.value)}
+        />
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Имэйл хаяг *
+        </label>
+        <input
+          type="email"
+          className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-purple-400"
+          placeholder="example@gmail.com"
+          value={email}
+          onChange={e => setEmail(e.target.value)}
+        />
+      </div>
+      <button
+        onClick={handleRegister}
+        className="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white font-semibold py-3 rounded-xl hover:from-purple-700 hover:to-blue-700 disabled:opacity-60"
+        disabled={loading || !phone || !email}
+      >
+        {loading ? "Бүртгэж байна..." : "Бүртгүүлэх"}
+      </button>
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-2 rounded-lg text-sm">
+          {error}
+        </div>
+      )}
+    </div>
   );
 }

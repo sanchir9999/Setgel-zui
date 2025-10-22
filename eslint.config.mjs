@@ -19,7 +19,6 @@ const eslintConfig = [
       "build/**",
       "next-env.d.ts",
       "server.js", // Хуучин файл, ашиглагдахгүй
-      "test-production.js", // Тест файл, CommonJS ашигладаг
     ],
   },
 ];
