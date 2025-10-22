@@ -375,14 +375,20 @@ export default function SurveyPage() {
                 )}
               </>
             ) : (
-              /* Нэвтрээгүй хэрэглэгчид зөвхөн мэдээлэл */
+              /* Нэвтрээгүй хэрэглэгчид зөвхөн нэвтрэх хүсэлт */
               <div className="mb-8 p-6 bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl border border-gray-300">
                 <div className="text-center">
                   <div className="text-4xl mb-4">🔒</div>
                   <h3 className="text-lg font-bold text-gray-800 mb-2">Үр дүн харахын тулд нэвтрэнэ үү</h3>
-                  <p className="text-gray-600 text-sm">
+                  <p className="text-gray-600 text-sm mb-6">
                     Тестийн үр дүн, зөвлөгөө болон өөрийн прогресс харахын тулд нэвтрэх шаардлагатай
                   </p>
+                  <button
+                    onClick={() => setShowAuth(true)}
+                    className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold py-3 px-6 rounded-xl transition-all transform hover:scale-105 active:scale-95 shadow-lg"
+                  >
+                    🚪 Нэвтрэх / Бүртгүүлэх
+                  </button>
                 </div>
               </div>
             )}

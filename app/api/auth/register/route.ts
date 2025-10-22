@@ -49,25 +49,22 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // Twilio Verify Service ашиглаж SMS илгээх
-        const smsSent = await sendSMS(phone, 'Verify Service код илгээж байна...');
-
-        // Fallback зорилгоор локал код үүсгэх
-        const verificationCode = generateVerificationCode();
-        const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 минут
-
-        await db.verificationCodes.create({
-            phone,
-            code: verificationCode,
-            expiresAt,
-            isUsed: false,
-        });
+        // Twilio Verify Service ашиглаж SMS илгээх (зөвхөн verify service код)
+        const smsSent = await sendSMS(phone, '');
 
         if (!smsSent) {
-            return NextResponse.json(
-                { success: false, message: 'SMS илгээхэд алдаа гарлаа. Дахин оролдоно уу.' },
-                { status: 500 }
-            );
+            // Fallback зорилгоор локал код үүсгэх
+            const verificationCode = generateVerificationCode();
+            const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 минут
+
+            await db.verificationCodes.create({
+                phone,
+                code: verificationCode,
+                expiresAt,
+                isUsed: false,
+            });
+
+            console.log(`⚠️ Twilio амжилтгүй, fallback код үүсгэлээ: ${verificationCode}`);
         }
 
         return NextResponse.json({

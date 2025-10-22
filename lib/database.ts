@@ -130,39 +130,28 @@ function generateId(): string {
 }
 
 // SMS илгээх функц
-export async function sendSMS(phone: string, message: string): Promise<boolean> {
-    console.log(`📱 SMS to ${phone}: ${message}`);
-
-    // Хөгжүүлэлтийн зорилгоор код хадгалах
-    const codeMatch = message.match(/(\d{6})/);
-    if (codeMatch) {
-        try {
-            // Хөгжүүлэлтийн API рүү код илгээх
-            await fetch('/api/dev/sms-codes', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ phone, code: codeMatch[1] })
-            });
-        } catch {
-            // Алдаа гарвал үргэлжлүүлэх
-        }
-    }
+export async function sendSMS(phone: string, message?: string): Promise<boolean> {
+    console.log(`📱 SMS to ${phone}`);
 
     // Twilio тохиргоонууд
     const accountSid = process.env.TWILIO_ACCOUNT_SID;
     const authToken = process.env.TWILIO_AUTH_TOKEN;
     const verifyServiceSid = process.env.TWILIO_VERIFY_SERVICE_SID;
 
-    // Хэрэв Twilio тохиргоо дутуу бол консолд хэвлэх
+    // Хэрэв Twilio тохиргоо дутуу бол fallback рүү шилжих
     if (!accountSid || !authToken || !verifyServiceSid) {
         console.log('⚠️ Twilio Verify тохиргоо дутуу байна. Fallback рүү шилждэж байна.');
 
-        // Монголын SMS API (Skytel жишээ)
-        const mongolianSMS = await sendMongolianSMS(phone, message);
-        if (mongolianSMS) return true;
+        // Fallback зорилгоор manual код үүсгэх
+        if (message) {
+            // Монголын SMS API (Skytel жишээ) эсвэл бусад API
+            const mongolianSMS = await sendMongolianSMS(phone, message);
+            if (mongolianSMS) return true;
 
-        console.log(`Fallback консол SMS: ${phone} → ${message}`);
-        return true;
+            console.log(`Fallback консол SMS: ${phone} → ${message}`);
+        }
+
+        return false; // Fallback амжилтгүй бол false буцаах
     }
 
     try {
@@ -176,27 +165,27 @@ export async function sendSMS(phone: string, message: string): Promise<boolean> 
             }
         }
 
-        // Verify Service ашиглаж автомат SMS илгээх
-        if (verifyServiceSid) {
-            const verification = await client.verify.v2.services(verifyServiceSid)
-                .verifications
-                .create({ to: formattedPhone, channel: 'sms' });
+        // Verify Service ашиглаж автомат SMS илгээх (зөвхөн нэг удаа)
+        const verification = await client.verify.v2.services(verifyServiceSid)
+            .verifications
+            .create({ to: formattedPhone, channel: 'sms' });
 
-            console.log(`✅ Twilio Verify SMS илгээгдлээ: ${formattedPhone}`);
-            console.log(`Verification SID: ${verification.sid}`);
-            return true;
-        } else {
-            throw new Error('Twilio Verify Service тохируулагдаагүй байна');
-        }
+        console.log(`✅ Twilio Verify SMS илгээгдлээ: ${formattedPhone}`);
+        console.log(`Verification SID: ${verification.sid}`);
+        return true;
 
     } catch (error) {
         console.error('❌ Twilio алдаа:', error);
-        // Алдаа гарвал fallback SMS API ашиглах
-        const mongolianSMS = await sendMongolianSMS(phone, message);
-        if (mongolianSMS) return true;
 
-        console.log(`Fallback SMS: ${phone} → ${message}`);
-        return true;
+        // Алдаа гарвал fallback manual SMS
+        if (message) {
+            const mongolianSMS = await sendMongolianSMS(phone, message);
+            if (mongolianSMS) return true;
+
+            console.log(`Fallback SMS: ${phone} → ${message}`);
+        }
+
+        return false; // Бүх арга амжилтгүй бол false
     }
 }
 
