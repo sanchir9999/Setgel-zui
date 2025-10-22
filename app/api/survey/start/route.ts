@@ -9,24 +9,51 @@ export async function POST(req: Request) {
         const { email, totalScore, maxScore, answers, advice } = await req.json();
 
         // Gmail тохиргоо шалгах
+        console.log("=== GMAIL ТОХИРГОО ШАЛГАЛТ ===");
+        console.log("NODE_ENV:", process.env.NODE_ENV);
+        console.log("GMAIL_USER:", process.env.GMAIL_USER || "ТОХИРУУЛААГҮЙ");
+        console.log("GMAIL_APP_PASSWORD length:", process.env.GMAIL_APP_PASSWORD?.length || 0);
+        console.log("GMAIL_APP_PASSWORD байгаа эсэх:", !!process.env.GMAIL_APP_PASSWORD);
+        console.log("================================");
+
         if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) {
-            console.log("Gmail тохиргоо дутуу байна");
-            console.log("GMAIL_USER:", process.env.GMAIL_USER ? "Тохируулсан" : "Тохируулаагүй");
-            console.log("GMAIL_APP_PASSWORD:", process.env.GMAIL_APP_PASSWORD ? "Тохируулсан" : "Тохируулаагүй");
-            console.log("Email:", email);
-            console.log("Total Score:", totalScore);
+            console.log("❌ Gmail тохиргоо дутуу байна");
             return NextResponse.json({
-                message: "Тест амжилттай хийгдлээ! (Мэйл тохиргоо дутуу байгаа тул илгээгдсэнгүй)"
+                message: "Тест амжилттай хийгдлээ! (Мэйл тохиргоо дутуу байгаа тул илгээгдсэнгүй)",
+                debug: {
+                    hasGmailUser: !!process.env.GMAIL_USER,
+                    hasGmailPassword: !!process.env.GMAIL_APP_PASSWORD,
+                    nodeEnv: process.env.NODE_ENV
+                }
             });
         }
 
         const transporter = nodemailer.createTransport({
             service: "gmail",
+            host: "smtp.gmail.com",
+            port: 587,
+            secure: false,
             auth: {
                 user: process.env.GMAIL_USER,
                 pass: process.env.GMAIL_APP_PASSWORD,
             },
+            tls: {
+                rejectUnauthorized: false
+            }
         });
+
+        // Холболтыг шалгах
+        try {
+            console.log("Gmail холболтыг шалгаж байна...");
+            await transporter.verify();
+            console.log("✅ Gmail холболт амжилттай");
+        } catch (verifyError: any) {
+            console.error("❌ Gmail холболт амжилтгүй:", verifyError.message);
+            return NextResponse.json({
+                message: "Тест амжилттай хийгдлээ! (Gmail холболт амжилтгүй)",
+                error: verifyError.message
+            });
+        }
 
         // Хариултуудын жагсаалт үүсгэх
         const answersList = answers.map((answer: number, index: number) =>
@@ -86,13 +113,23 @@ export async function POST(req: Request) {
             await transporter.sendMail(mailOptions);
             console.log("Мэйл амжилттай илгээгдлээ:", email);
             return NextResponse.json({ message: "Тайлан амжилттай имэйлээр илгээгдлээ!" });
-        } catch (mailError) {
-            console.error("Мэйл илгээхэд алдаа:", mailError);
+        } catch (mailError: any) {
+            console.error("=== МЭЙЛ АЛДАА ===");
+            console.error("Алдааны төрөл:", mailError.name);
+            console.error("Алдааны мессеж:", mailError.message);
+            console.error("Алдааны код:", mailError.code);
+            console.error("Бүрэн алдаа:", mailError);
+            console.error("==================");
 
             // Мэйл илгээгдээгүй ч тест үр дүн нь ажилласан тул success буцаах
             return NextResponse.json({
                 message: "Тест амжилттай хийгдлээ! (Мэйл илгээхэд алдаа гарсан тул имэйл илгээгдсэнгүй)",
-                warning: "Мэйл тохиргоонд алдаа байна"
+                warning: "Мэйл тохиргоонд алдаа байна",
+                errorDetails: {
+                    name: mailError.name,
+                    message: mailError.message,
+                    code: mailError.code
+                }
             });
         }
 
