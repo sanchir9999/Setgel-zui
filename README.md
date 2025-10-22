@@ -35,22 +35,34 @@ The easiest way to deploy your Next.js app is to use the [Vercel Platform](https
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
 
-## Орчны хувьсагчийн тохиргоо (.env)
+## Функцууд
 
-Мэйл илгээх үйлдэл зөвхөн production орчинд (Vercel дээр deploy хийсэн үед) ажиллана. Хөгжүүлэлтийн үед (local) мэйл илгээхгүй.
+✅ **Амьдралын стрессийн түвшний тест** - 15 асуулттай психологийн тест  
+✅ **Дэлгэрэнгүй тайлан** - Оноо, хариултууд, зөвлөгөөтэй  
+✅ **Мэйлээр тайлан авах** - Хэрэглэгч тестийн үр дүнгээ мэйлээр хүлээн авдаг  
+✅ **Responsive дизайн** - Утас, таблет, компьютерт тохирсон  
+✅ **Өдөр/шөнийн горим** - Харанхуй, гэрэл горим солих боломжтой
 
-### .env.local (зөвхөн local хөгжүүлэлтэд)
-```
-NODE_ENV=development
+## Мэйл тохиргоо
+
+Мэйл илгээх үйлдэл зөвхөн **production орчинд** (Vercel дээр deploy хийсэн үед) ажиллана. Хөгжүүлэлтийн үед console дээр мэдээлэл хэвлэгдэнэ.
+
+### Орчны хувьсагч тохируулах:
+
+1. `.env.example` файлыг `.env.local` болгож хуулна уу
+2. Gmail тохиргоог оруулна уу:
+
+```bash
 GMAIL_USER=your_email@gmail.com
-GMAIL_APP_PASSWORD=your_app_password
+GMAIL_APP_PASSWORD=your_gmail_app_password
 ```
 
-### .env.production (Vercel болон production орчинд)
-```
-NODE_ENV=production
-GMAIL_USER=your_email@gmail.com
-GMAIL_APP_PASSWORD=your_app_password
-```
+### Gmail App Password үүсгэх:
+1. Google Account > Security > 2-Step Verification идэвхжүүлэх
+2. App passwords хэсгээс шинэ app password үүсгэх
+3. Энэ password-ыг `GMAIL_APP_PASSWORD`-т ашиглана
 
-> ⚠️ Gmail App Password үүсгэх зааврыг [эндээс](https://support.google.com/accounts/answer/185833?hl=en) харна уу.
+> ⚠️ Зааврыг [эндээс](https://support.google.com/accounts/answer/185833?hl=en) дэлгэрэнгүй харна уу.
+
+### Production Deploy (Vercel):
+Vercel дээр deploy хийхдээ Environment Variables хэсэгт дээрх хувьсагчуудыг нэмнэ үү.

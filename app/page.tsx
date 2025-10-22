@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import Slider from "../components/Slider";
 
 const TESTS = [
   {
@@ -47,7 +46,7 @@ export default function Home() {
 
       {/* Слайдерийг доод хэсэгт байрлуулна */}
       <div className="w-full flex justify-center mt-12">
-        <Slider />
+
       </div>
     </main>
   );

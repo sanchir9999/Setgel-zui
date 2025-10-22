@@ -1,4 +1,5 @@
-// server.js
+// server.js - ХУУЧИН ФАЙЛ (ашиглагдахгүй)
+// Next.js App Router ашиглаж байгаа тул энэ файл шаардлагагүй
 const express = require('express');
 const nodemailer = require('nodemailer');
 
@@ -12,8 +13,8 @@ app.use(express.json());
 const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
-        user: 'monhbatsanchir1@gmail.com', // Таны мэйл хаяг
-        pass: 'Suren@4321',  // Таны мэйлын нууц үг
+        user: 'ХУУЧИН_МЭЙЛ_ХАЯГ_УСТГАСАН', // Аюулгүй байдлын шалтгаанаар устгасан
+        pass: 'ХУУЧИН_НУУЦ_УГ_УСТГАСАН',  // Аюулгүй байдлын шалтгаанаар устгасан
     },
 });
 
@@ -22,7 +23,7 @@ app.post('/send-mail', (req, res) => {
     const { email, subject, htmlContent } = req.body;
 
     const mailOptions = {
-        from: 'monhbatsanchir1@gmail.com', // Таны имэйл хаяг
+        from: 'ХУУЧИН_МЭЙЛ_ХАЯГ_УСТГАСАН', // Аюулгүй байдлын шалтгаанаар устгасан
         to: email, // Хүлээн авагчийн имэйл хаяг
         subject: subject || 'Тайлан',  // Тухайн хариулттай тайлангийн гарчиг
         html: htmlContent || '<h1>Таны судалгааны тайлан</h1>', // HTML агуулга
