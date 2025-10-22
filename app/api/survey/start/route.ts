@@ -15,8 +15,8 @@ export async function POST(req: Request) {
             console.log("GMAIL_APP_PASSWORD:", process.env.GMAIL_APP_PASSWORD ? "Тохируулсан" : "Тохируулаагүй");
             console.log("Email:", email);
             console.log("Total Score:", totalScore);
-            return NextResponse.json({ 
-                message: "Тест амжилттай хийгдлээ! (Мэйл тохиргоо дутуу байгаа тул илгээгдсэнгүй)" 
+            return NextResponse.json({
+                message: "Тест амжилттай хийгдлээ! (Мэйл тохиргоо дутуу байгаа тул илгээгдсэнгүй)"
             });
         }
 
@@ -37,7 +37,7 @@ export async function POST(req: Request) {
         const percentage = Math.round((totalScore / maxScore) * 100);
 
         const mailOptions = {
-            from: process.env.GMAIL_USER,
+            from: `"Setgel-Zui - Сэтгэлзүйн Тест" <${process.env.GMAIL_USER}>`,
             to: email,
             subject: "Таны амьдралын стрессийн түвшний тайлан",
             html: `
@@ -79,14 +79,18 @@ export async function POST(req: Request) {
         };
 
         try {
+            console.log("Мэйл илгээж байна...");
+            console.log("From:", mailOptions.from);
+            console.log("To:", email);
+
             await transporter.sendMail(mailOptions);
             console.log("Мэйл амжилттай илгээгдлээ:", email);
             return NextResponse.json({ message: "Тайлан амжилттай имэйлээр илгээгдлээ!" });
         } catch (mailError) {
             console.error("Мэйл илгээхэд алдаа:", mailError);
-            
+
             // Мэйл илгээгдээгүй ч тест үр дүн нь ажилласан тул success буцаах
-            return NextResponse.json({ 
+            return NextResponse.json({
                 message: "Тест амжилттай хийгдлээ! (Мэйл илгээхэд алдаа гарсан тул имэйл илгээгдсэнгүй)",
                 warning: "Мэйл тохиргоонд алдаа байна"
             });
