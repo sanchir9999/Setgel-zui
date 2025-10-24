@@ -53,28 +53,21 @@ export default function QuestionCard({ q, value, onChange }: Props) {
         return arr;
     }, [q.scaleMin, q.scaleMax]);
 
-    // const minLabel = labels[q.scaleMin] ?? "Бага";
-    // const maxLabel = labels[q.scaleMax] ?? "Их";
-
     return (
-        <div className="space-y-8 p-6">
-            {/* Асуултын текст - илүү том, тод */}
-            <div className="text-center space-y-3">
-                <h2 className="text-xl sm:text-2xl font-bold text-gray-800 leading-relaxed px-4">
-                    {q.text}
-                </h2>
+        <div className="p-4">
+            {/* Асуултын текст */}
+            <div className="text-center">
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{q.text}</h2>
             </div>
 
             {/* Хариултын хэсэг */}
-            <div className="space-y-6">
-                {/* Scale зааварчилгаа */}
-                <div className="flex justify-between items-center text-xs text-gray-500 px-2">
-                    <span>{q.id.startsWith("S") ? "Бага" : q.id.startsWith("H") ? "Огт үгүй" : "Огт үгүй"}</span>
-                    <span>{q.id.startsWith("S") ? "Их" : q.id.startsWith("H") ? "Маш их" : "Маш их"}</span>
+            <div className="mt-4">
+                <div className="flex items-center justify-between text-xs text-gray-500 mb-3">
+                    <span>Бага</span>
+                    <span>Их</span>
                 </div>
 
-                {/* Товчлуурын хэсэг - илүү том, илүү тод */}
-                <div className="flex flex-wrap gap-3 justify-center px-2">
+                <div className="flex gap-2 justify-center">
                     {options.map((v) => {
                         const selected = value === v;
                         return (
@@ -83,14 +76,12 @@ export default function QuestionCard({ q, value, onChange }: Props) {
                                 type="button"
                                 onClick={() => onChange(v)}
                                 aria-label={`${v}: ${labels[v] ?? ""}`}
-                                className={[
-                                    "h-14 w-14 sm:h-16 sm:w-16 rounded-2xl border-2 transition-all duration-300",
-                                    "flex items-center justify-center text-lg sm:text-xl font-bold focus:outline-none focus:ring-4",
-                                    "transform hover:scale-110 active:scale-95",
-                                    selected
-                                        ? "bg-gradient-to-br from-blue-600 to-purple-600 text-white border-blue-600 shadow-xl scale-110 focus:ring-blue-300"
-                                        : "bg-white text-gray-700 border-gray-300 shadow-lg hover:bg-gradient-to-br hover:from-blue-50 hover:to-purple-50 hover:border-blue-400 focus:ring-blue-200",
-                                ].join(" ")}
+                                className={
+                                    "h-10 w-10 rounded-full flex items-center justify-center text-sm font-medium transition-transform " +
+                                    (selected
+                                        ? "bg-black text-white dark:bg-white dark:text-black border-0"
+                                        : "bg-white border border-gray-200 text-gray-700 dark:bg-zinc-900 dark:border-zinc-700 dark:text-gray-300")
+                                }
                             >
                                 {v}
                             </button>
@@ -98,18 +89,8 @@ export default function QuestionCard({ q, value, onChange }: Props) {
                     })}
                 </div>
 
-                {/* Сонгосон хариултын тайлбар - илүү том, илүү анхаарал татахуйц */}
-                <div className="flex justify-center mt-6">
-                    <div className={[
-                        "px-6 py-3 rounded-2xl border-2 text-center min-h-[60px] flex items-center justify-center transition-all duration-300",
-                        value !== undefined
-                            ? "bg-gradient-to-r from-blue-100 to-purple-100 border-blue-300 text-blue-800 shadow-lg"
-                            : "bg-gray-50 border-gray-200 text-gray-500"
-                    ].join(" ")}>
-                        <span className="text-base sm:text-lg font-semibold">
-                            {value !== undefined ? labels[value] : "👆 Хариултаа сонгоно уу"}
-                        </span>
-                    </div>
+                <div className="mt-4 text-center text-sm text-gray-600 dark:text-gray-400">
+                    {value !== undefined ? labels[value] : "Хариултаа сонгоно уу"}
                 </div>
             </div>
         </div>

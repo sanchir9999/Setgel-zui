@@ -1,7 +1,15 @@
+import Link from "next/link";
+
 export default function Footer() {
   return (
-    <footer className="w-full py-4 px-4 bg-gray-100 dark:bg-zinc-900 text-center text-gray-500 dark:text-gray-400 text-sm mt-8">
-      © {new Date().getFullYear()} Setgel-Zui. Бүх эрх хуулиар хамгаалагдсан.
+    <footer className="w-full mt-12">
+      <div className="max-w-5xl mx-auto px-4 py-6 flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">
+        <p>© {new Date().getFullYear()} Setgel‑Zui</p>
+        <div className="flex items-center gap-4">
+          <Link href="/privacy" className="hover:underline">Нууцлал</Link>
+          <Link href="/terms" className="hover:underline">Үйлчилгээ</Link>
+        </div>
+      </div>
     </footer>
   );
 }

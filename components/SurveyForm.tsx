@@ -48,57 +48,39 @@ const SurveyForm = () => {
     };
 
     return (
-        <div>
-            <h1>Судалгааны Форм</h1>
-            <form onSubmit={onSubmit}>
-                <div>
-                    <label htmlFor="email">Имэйл хаяг:</label>
+        <div className="max-w-2xl mx-auto p-4">
+            <h1 className="text-lg font-semibold mb-4">Судалгааны форм</h1>
+            <form onSubmit={onSubmit} className="space-y-4">
+                <div className="flex flex-col">
+                    <label htmlFor="email" className="text-sm text-gray-600 dark:text-gray-400">Имэйл</label>
                     <input
                         id="email"
                         type="email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         required
+                        className="mt-2 border border-gray-200 dark:border-zinc-700 rounded-md px-3 py-2 text-sm bg-white dark:bg-zinc-900"
                     />
                 </div>
 
-                {/* Стресс */}
-                <div>
-                    <label>Стрессын түвшин:</label>
-                    <input
-                        type="number"
-                        value={answers.stress}
-                        onChange={(e) => setAnswers({ ...answers, stress: +e.target.value })}
-                        min="0"
-                        max="4"
-                    />
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div className="flex flex-col">
+                        <label className="text-xs text-gray-500">Стресс</label>
+                        <input type="number" value={answers.stress} onChange={(e) => setAnswers({ ...answers, stress: +e.target.value })} min={0} max={4} className="mt-2 px-2 py-1 border rounded-md text-sm" />
+                    </div>
+                    <div className="flex flex-col">
+                        <label className="text-xs text-gray-500">Сэтгэл ханамж</label>
+                        <input type="number" value={answers.happiness} onChange={(e) => setAnswers({ ...answers, happiness: +e.target.value })} min={1} max={7} className="mt-2 px-2 py-1 border rounded-md text-sm" />
+                    </div>
+                    <div className="flex flex-col">
+                        <label className="text-xs text-gray-500">EQ</label>
+                        <input type="number" value={answers.eq} onChange={(e) => setAnswers({ ...answers, eq: +e.target.value })} min={1} max={5} className="mt-2 px-2 py-1 border rounded-md text-sm" />
+                    </div>
                 </div>
 
-                {/* Сэтгэл ханамж */}
-                <div>
-                    <label>Сэтгэл ханамжийн түвшин:</label>
-                    <input
-                        type="number"
-                        value={answers.happiness}
-                        onChange={(e) => setAnswers({ ...answers, happiness: +e.target.value })}
-                        min="1"
-                        max="7"
-                    />
+                <div className="flex justify-end">
+                    <button type="submit" className="btn-primary text-sm px-4 py-2">Тайлан илгээх</button>
                 </div>
-
-                {/* Эмоционал Интеллект */}
-                <div>
-                    <label>Эмоционал Интеллектийн түвшин:</label>
-                    <input
-                        type="number"
-                        value={answers.eq}
-                        onChange={(e) => setAnswers({ ...answers, eq: +e.target.value })}
-                        min="1"
-                        max="5"
-                    />
-                </div>
-
-                <button type="submit">Тайлан илгээх</button>
             </form>
         </div>
     );
